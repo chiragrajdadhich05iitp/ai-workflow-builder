@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String        @id @default(cuid())
+  email     String        @unique
+  password  String?
+  name      String?
+  seededAt  DateTime?
+  workflows Workflow[]
+  runs      WorkflowRun[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+model Workflow {
+  id          String        @id @default(cuid())
+  name        String        @default("Untitled Workflow")
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nodes       String        @default("[]")
+  edges       String        @default("[]")
+  version     Int           @default(1)
+  runs        WorkflowRun[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model WorkflowRun {
+  id          String    @id @default(cuid())
+  workflowId  String
+  workflow    Workflow  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status      String
+  scope       String?
+  startedAt   DateTime  @default(now())
+  finishedAt  DateTime?
+  nodeRuns    NodeRun[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model NodeRun {
+  id            String      @id @default(cuid())
+  workflowRunId String
+  workflowRun   WorkflowRun @relation(fields: [workflowRunId], references: [id], onDelete: Cascade)
+  nodeId        String
+  status        String
+  inputs        String?
+  output        String?
+  error         String?
+  duration      Int?
+  createdAt     DateTime    @default(now())
+}
